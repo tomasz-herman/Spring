@@ -5,28 +5,49 @@ import javafx.event.EventHandler;
 import pl.edu.pw.mini.symulacje.functional.TriFunction;
 
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static pl.edu.pw.mini.symulacje.functional.Utils.function;
 
 public class Simulation implements EventHandler<ActionEvent> {
-    private final double x0 = -6;
-    private final double v0 = 0;
-    private final double dt = 0.0167;
-    private final double m = 1;
-    private final double k = 0.1;
-    private final double c = 5;
-    private final Function<Double, Double> w = function("sin(t)", "t");
+    private final Consumer<Double> update;
 
-    private final BiFunction<Double, Double, Double> f = (x, t) -> c * (w.apply(t) - x);
-    private final Function<Double, Double> g = v -> -k * v;
-    private final Function<Double, Double> h = function("0", "t");
-    private final TriFunction<Double, Double, Double, Double> F = (x, v, t) -> f.apply(x, t) + g.apply(v) + h.apply(t);
+    private final double dt;
+    private final double m;
+    private final double k;
+    private final double c;
+    private final Function<Double, Double> w;
 
-    private double t = 0.0;
-    private double x = x0;
-    private double v = v0;
-    private double a = F.apply(x, v, t) / m;
+    private final BiFunction<Double, Double, Double> f;
+    private final Function<Double, Double> g;
+    private final Function<Double, Double> h;
+    private final TriFunction<Double, Double, Double, Double> F;
+
+    private double t;
+    private double x;
+    private double v;
+    private double a;
+
+    public Simulation(Consumer<Double> update, double x0, double v0, double dt, double m, double k, double c, String w, String h) {
+        this.update = update;
+        this.dt = dt;
+        this.m = m;
+        this.k = k;
+        this.c = c;
+        this.w = function(w, "t");
+
+        this.f = (x, t) -> this.c * (this.w.apply(t) - x);
+        this.g = v -> -this.k * v;
+        this.h = function(h, "t");
+        this.F = (x, v, t) -> this.f.apply(x, t) + this.g.apply(v) + this.h.apply(t);
+
+        this.t = 0.0;
+        this.x = x0;
+        this.v = v0;
+        this.a = F.apply(x, v, t) / m;
+        update.accept(x);
+    }
 
     @Override
     public void handle(ActionEvent event) {
@@ -34,6 +55,6 @@ public class Simulation implements EventHandler<ActionEvent> {
         x += v * dt;
         v += a * dt;
         a = F.apply(x, v, t) / m;
-        System.out.printf("x = %.2f, v = %.2f, a = %.2f, w = %.2f%n", x, v, a, w.apply(t));
+        update.accept(x);
     }
 }
