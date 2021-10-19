@@ -2,6 +2,7 @@ package pl.edu.pw.mini.symulacje;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import pl.edu.pw.mini.symulacje.functional.OctaConsumer;
 import pl.edu.pw.mini.symulacje.functional.TriFunction;
 
 import java.util.function.BiFunction;
@@ -11,7 +12,8 @@ import java.util.function.Function;
 import static pl.edu.pw.mini.symulacje.functional.Utils.function;
 
 public class Simulation implements EventHandler<ActionEvent> {
-    private final Consumer<Double> update;
+    private final Consumer<Double> updateVisualisation;
+    private final OctaConsumer<Double> updateControls;
 
     private final double dt;
     private final double m;
@@ -29,8 +31,9 @@ public class Simulation implements EventHandler<ActionEvent> {
     private double v;
     private double a;
 
-    public Simulation(Consumer<Double> update, double x0, double v0, double dt, double m, double k, double c, String w, String h) {
-        this.update = update;
+    public Simulation(Consumer<Double> updateVisualisation, OctaConsumer<Double> updateControls, double x0, double v0, double dt, double m, double k, double c, String w, String h) {
+        this.updateVisualisation = updateVisualisation;
+        this.updateControls = updateControls;
         this.dt = dt;
         this.m = m;
         this.k = k;
@@ -46,15 +49,17 @@ public class Simulation implements EventHandler<ActionEvent> {
         this.x = x0;
         this.v = v0;
         this.a = F.apply(x, v, t) / m;
-        update.accept(x);
+        updateVisualisation.accept(x);
+        updateControls.accept(x, v, a, t, this.w.apply(t), f.apply(x, t), g.apply(t), this.h.apply(t));
     }
 
     @Override
     public void handle(ActionEvent event) {
         t += dt;
-        x += v * dt;
-        v += a * dt;
+        x += v * dt * 0.5;
+        v += a * dt * 0.5;
         a = F.apply(x, v, t) / m;
-        update.accept(x);
+        updateVisualisation.accept(x);
+        updateControls.accept(x, v, a, t, this.w.apply(t), f.apply(x, t), g.apply(v), this.h.apply(t));
     }
 }
