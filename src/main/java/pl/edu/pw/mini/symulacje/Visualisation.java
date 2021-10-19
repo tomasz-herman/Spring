@@ -9,11 +9,14 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 
 public class Visualisation {
+    public static final int VISUALISATION_SCALE = 25;
+    public static final int RADIUS = 40;
+
     private final DoubleProperty center = new SimpleDoubleProperty();
     private final Circle circle;
 
     public Visualisation(Pane pane) {
-        circle = new Circle(40);
+        circle = new Circle(RADIUS);
         circle.setFill(Color.CRIMSON);
         circle.setStrokeWidth(3);
         circle.setStroke(Color.BLACK);
@@ -36,6 +39,6 @@ public class Visualisation {
     }
 
     public void update(double x) {
-        circle.setCenterY(center.getValue() + x * 25);
+        circle.setCenterY(center.getValue() + x * VISUALISATION_SCALE);
     }
 }

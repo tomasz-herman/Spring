@@ -12,6 +12,8 @@ import java.util.function.Function;
 import static pl.edu.pw.mini.symulacje.functional.Utils.function;
 
 public class Simulation implements EventHandler<ActionEvent> {
+    public static final double UPDATE_TIME = 0.01667;
+
     private final Consumer<Double> updateVisualisation;
     private final OctaConsumer<Double> updateControls;
 
@@ -63,8 +65,8 @@ public class Simulation implements EventHandler<ActionEvent> {
         a = F.apply(x, v, t) / m;
 
         u += dt;
-        if(u > 0.01667) {
-            u -= 0.01667;
+        if(u > UPDATE_TIME) {
+            u -= UPDATE_TIME;
             updateVisualisation.accept(x);
             updateControls.accept(x, v, a, t, this.w.apply(t), f.apply(x, t), g.apply(v), this.h.apply(t));
         }

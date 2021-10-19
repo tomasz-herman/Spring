@@ -14,10 +14,10 @@ repositories {
 javafx {
     version = '17'
     modules = [ 'javafx.base', 'javafx.graphics', 'javafx.controls', 'javafx.swing', 'javafx.fxml' ]
-    mainClassName = 'pl.edu.pw.mini.symulacje.MainPanel'
+    mainClassName = 'pl.edu.pw.mini.symulacje.App'
 }
 
-mainClassName = 'pl.edu.pw.mini.symulacje.Main'
+mainClassName = 'pl.edu.pw.mini.symulacje.Launcher'
 
 dependencies {
     implementation 'net.objecthunter:exp4j:0.4.8'

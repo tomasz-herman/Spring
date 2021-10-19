@@ -17,7 +17,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 
+import static javafx.animation.Animation.Status.PAUSED;
+import static javafx.animation.Animation.Status.STOPPED;
+import static javafx.scene.control.Alert.AlertType.ERROR;
+
 public class Controller {
+    private static final int MAX_LINECHART_DATA = 1000;
+    private static final int MAX_SCATTERCHART_DATA = 1000000;
+    private static final String FLOAT_FORMAT = "%.2f";
+    private static final String COULDN_T_START_SIMULATION = "Couldn't start simulation";
+    private static final String RESUME_BTN_TEXT = "Resume";
+    private static final String PAUSE_BTN_TEXT = "Pause";
+
     @FXML private ScatterChart<Number, Number> trajectoryChart;
     @FXML private LineChart<Number, Number> kinematicsChart;
     @FXML private LineChart<Number, Number> forcesChart;
@@ -71,46 +82,53 @@ public class Controller {
         trajectorySeries = new XYChart.Series<>();
         trajectoryChart.getData().add(trajectorySeries);
 
-        startButton.disableProperty().bind(timeline.statusProperty().isNotEqualTo(Animation.Status.STOPPED));
-        x0Value.disableProperty().bind(timeline.statusProperty().isNotEqualTo(Animation.Status.STOPPED));
-        v0Value.disableProperty().bind(timeline.statusProperty().isNotEqualTo(Animation.Status.STOPPED));
-        cValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(Animation.Status.STOPPED));
-        dtValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(Animation.Status.STOPPED));
-        kValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(Animation.Status.STOPPED));
-        mValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(Animation.Status.STOPPED));
-        wFun.disableProperty().bind(timeline.statusProperty().isNotEqualTo(Animation.Status.STOPPED));
-        hFun.disableProperty().bind(timeline.statusProperty().isNotEqualTo(Animation.Status.STOPPED));
-        stopButton.disableProperty().bind(timeline.statusProperty().isEqualTo(Animation.Status.STOPPED));
-        pauseButton.disableProperty().bind(timeline.statusProperty().isEqualTo(Animation.Status.STOPPED));
+        startButton.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        x0Value.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        v0Value.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        cValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        dtValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        kValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        mValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        wFun.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        hFun.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        stopButton.disableProperty().bind(timeline.statusProperty().isEqualTo(STOPPED));
+        pauseButton.disableProperty().bind(timeline.statusProperty().isEqualTo(STOPPED));
 
         timeline.statusProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue == Animation.Status.PAUSED) pauseButton.setText("Resume");
-            else pauseButton.setText("Pause");
+            if(newValue == PAUSED) pauseButton.setText(RESUME_BTN_TEXT);
+            else pauseButton.setText(PAUSE_BTN_TEXT);
         });
     }
 
     @FXML private void onStart(ActionEvent event) {
-        final double frameDuration = parseTextField(dtValue, v -> v > 0);
+        try {
+            final double x0 = parseTextField(x0Value, null);
+            final double v0 = parseTextField(v0Value, null);
+            final double dt = parseTextField(dtValue, v -> v > 0);
+            final double m = parseTextField(mValue, v -> v > 0);
+            final double k = parseTextField(kValue, v -> v >= 0);
+            final double c = parseTextField(cValue, v -> v >= 0);
 
-        Visualisation visualisation = new Visualisation(visualisationPane);
+            Visualisation visualisation = new Visualisation(visualisationPane);
 
-        Simulation springSimulation = new Simulation(
-                visualisation::update, this::update,
-                parseTextField(x0Value, null),
-                parseTextField(v0Value, null),
-                parseTextField(dtValue, v -> v > 0),
-                parseTextField(mValue, v -> v > 0),
-                parseTextField(kValue, v -> v >= 0),
-                parseTextField(cValue, v -> v >= 0),
-                wFun.getText(), hFun.getText());
+            Simulation springSimulation = new Simulation(
+                    visualisation::update, this::update,
+                    x0, v0, dt, m, k, c,
+                    wFun.getText(), hFun.getText());
 
-        timeline.getKeyFrames().clear();
-        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(frameDuration), springSimulation));
-        timeline.play();
+            timeline.getKeyFrames().clear();
+            timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(dt), springSimulation));
+            timeline.play();
+        } catch (IllegalArgumentException e) {
+            Alert errorAlert = new Alert(ERROR);
+            errorAlert.setHeaderText(COULDN_T_START_SIMULATION);
+            errorAlert.setContentText(e.getMessage());
+            errorAlert.showAndWait();
+        }
     }
 
     @FXML private void onPause(ActionEvent event) {
-        if (timeline.getStatus() == Animation.Status.PAUSED) {
+        if (timeline.getStatus() == PAUSED) {
             timeline.play();
         } else if (timeline.getStatus() == Animation.Status.RUNNING) {
             timeline.pause();
@@ -122,49 +140,53 @@ public class Controller {
         xSeries.getData().clear();
         xtSeries.getData().clear();
         xttSeries.getData().clear();
+        kinematicsChart.getData().clear();
+        kinematicsChart.getData().addAll(List.of(xSeries, xtSeries, xttSeries));
         fSeries.getData().clear();
         gSeries.getData().clear();
         hSeries.getData().clear();
+        forcesChart.getData().clear();
+        forcesChart.getData().addAll(List.of(fSeries, gSeries, hSeries));
         trajectorySeries.getData().clear();
         visualisationPane.getChildren().clear();
     }
 
     private void update(double x, double v, double a, double t, double w, double f, double g, double h) {
         xSeries.getData().add(new XYChart.Data<>(t, x));
-        if(xSeries.getData().size() > 1000) xSeries.getData().remove(0);
+        if(xSeries.getData().size() > MAX_LINECHART_DATA) xSeries.getData().remove(0);
         xtSeries.getData().add(new XYChart.Data<>(t, v));
-        if(xtSeries.getData().size() > 1000) xtSeries.getData().remove(0);
+        if(xtSeries.getData().size() > MAX_LINECHART_DATA) xtSeries.getData().remove(0);
         xttSeries.getData().add(new XYChart.Data<>(t, a));
-        if(xttSeries.getData().size() > 1000) xttSeries.getData().remove(0);
+        if(xttSeries.getData().size() > MAX_LINECHART_DATA) xttSeries.getData().remove(0);
 
         fSeries.getData().add(new XYChart.Data<>(t, f));
-        if(fSeries.getData().size() > 1000) fSeries.getData().remove(0);
+        if(fSeries.getData().size() > MAX_LINECHART_DATA) fSeries.getData().remove(0);
         gSeries.getData().add(new XYChart.Data<>(t, g));
-        if(gSeries.getData().size() > 1000) gSeries.getData().remove(0);
+        if(gSeries.getData().size() > MAX_LINECHART_DATA) gSeries.getData().remove(0);
         hSeries.getData().add(new XYChart.Data<>(t, h));
-        if(hSeries.getData().size() > 1000) hSeries.getData().remove(0);
+        if(hSeries.getData().size() > MAX_LINECHART_DATA) hSeries.getData().remove(0);
 
         trajectorySeries.getData().add(new XYChart.Data<>(x, v));
-        if(fSeries.getData().size() > 1000000) trajectorySeries.getData().remove(0);
+        if(fSeries.getData().size() > MAX_SCATTERCHART_DATA) trajectorySeries.getData().remove(0);
 
-        tValue.setText(String.format("%.2f", t));
-        xValue.setText(String.format("%.2f", x));
-        xtValue.setText(String.format("%.2f", v));
-        xttValue.setText(String.format("%.2f", a));
-        fValue.setText(String.format("%.2f", f));
-        gValue.setText(String.format("%.2f", g));
-        hValue.setText(String.format("%.2f", h));
-        wValue.setText(String.format("%.2f", w));
+        tValue.setText(String.format(FLOAT_FORMAT, t));
+        xValue.setText(String.format(FLOAT_FORMAT, x));
+        xtValue.setText(String.format(FLOAT_FORMAT, v));
+        xttValue.setText(String.format(FLOAT_FORMAT, a));
+        fValue.setText(String.format(FLOAT_FORMAT, f));
+        gValue.setText(String.format(FLOAT_FORMAT, g));
+        hValue.setText(String.format(FLOAT_FORMAT, h));
+        wValue.setText(String.format(FLOAT_FORMAT, w));
     }
 
     private double parseTextField(TextInputControl input, Function<Double, Boolean> validation) throws IllegalArgumentException {
-        if (input == null || input.getText() == null) throw new IllegalArgumentException("Bad value");
+        if (input == null || input.getText() == null) throw new IllegalArgumentException("Empty input");
         try {
             double number = Double.parseDouble(input.getText());
             if(validation == null || validation.apply(number)) {
                 return number;
             } else {
-                throw new IllegalArgumentException("Bad input");
+                throw new IllegalArgumentException("Invalid input");
             }
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(e);
