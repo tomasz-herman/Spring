@@ -1,7 +1,7 @@
 package pl.edu.pw.mini.symulacje;
 
-public class Main {
+public class Launcher {
     public static void main(String[] args) {
-        MainPanel.main(args);
+        App.main(args);
     }
 }
