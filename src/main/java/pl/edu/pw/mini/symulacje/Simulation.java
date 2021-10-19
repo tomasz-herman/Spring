@@ -59,10 +59,10 @@ public class Simulation implements EventHandler<ActionEvent> {
 
     @Override
     public void handle(ActionEvent event) {
-        t += dt;
-        x += v * dt * 0.5;
-        v += a * dt * 0.5;
         a = F.apply(x, v, t) / m;
+        v += a * dt;
+        x += v * dt;
+        t += dt;
 
         u += dt;
         if(u > UPDATE_TIME) {
