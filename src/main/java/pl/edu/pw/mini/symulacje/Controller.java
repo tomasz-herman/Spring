@@ -22,10 +22,10 @@ import static javafx.animation.Animation.Status.STOPPED;
 import static javafx.scene.control.Alert.AlertType.ERROR;
 
 public class Controller {
-    private static final int MAX_LINECHART_DATA = 1000;
-    private static final int MAX_SCATTERCHART_DATA = 1000000;
+    private static final int MAX_LINE_CHART_DATA = 1_000;
+    private static final int MAX_SCATTER_CHART_DATA = 1_000_000;
     private static final String FLOAT_FORMAT = "%.2f";
-    private static final String COULDN_T_START_SIMULATION = "Couldn't start simulation";
+    private static final String CANNOT_START_SIMULATION = "Couldn't start simulation";
     private static final String RESUME_BTN_TEXT = "Resume";
     private static final String PAUSE_BTN_TEXT = "Pause";
 
@@ -101,6 +101,7 @@ public class Controller {
     }
 
     @FXML private void onStart(ActionEvent event) {
+        event.consume();
         try {
             final double x0 = parseTextField(x0Value, null);
             final double v0 = parseTextField(v0Value, null);
@@ -121,13 +122,14 @@ public class Controller {
             timeline.play();
         } catch (IllegalArgumentException e) {
             Alert errorAlert = new Alert(ERROR);
-            errorAlert.setHeaderText(COULDN_T_START_SIMULATION);
+            errorAlert.setHeaderText(CANNOT_START_SIMULATION);
             errorAlert.setContentText(e.getMessage());
             errorAlert.showAndWait();
         }
     }
 
     @FXML private void onPause(ActionEvent event) {
+        event.consume();
         if (timeline.getStatus() == PAUSED) {
             timeline.play();
         } else if (timeline.getStatus() == Animation.Status.RUNNING) {
@@ -136,6 +138,7 @@ public class Controller {
     }
 
     @FXML private void onStop(ActionEvent event) {
+        event.consume();
         timeline.stop();
         xSeries.getData().clear();
         xtSeries.getData().clear();
@@ -152,22 +155,11 @@ public class Controller {
     }
 
     private void update(double x, double v, double a, double t, double w, double f, double g, double h) {
-        xSeries.getData().add(new XYChart.Data<>(t, x));
-        if(xSeries.getData().size() > MAX_LINECHART_DATA) xSeries.getData().remove(0);
-        xtSeries.getData().add(new XYChart.Data<>(t, v));
-        if(xtSeries.getData().size() > MAX_LINECHART_DATA) xtSeries.getData().remove(0);
-        xttSeries.getData().add(new XYChart.Data<>(t, a));
-        if(xttSeries.getData().size() > MAX_LINECHART_DATA) xttSeries.getData().remove(0);
-
-        fSeries.getData().add(new XYChart.Data<>(t, f));
-        if(fSeries.getData().size() > MAX_LINECHART_DATA) fSeries.getData().remove(0);
-        gSeries.getData().add(new XYChart.Data<>(t, g));
-        if(gSeries.getData().size() > MAX_LINECHART_DATA) gSeries.getData().remove(0);
-        hSeries.getData().add(new XYChart.Data<>(t, h));
-        if(hSeries.getData().size() > MAX_LINECHART_DATA) hSeries.getData().remove(0);
+        updateLineChart(x, v, a, t, xSeries, xtSeries, xttSeries);
+        updateLineChart(f, g, h, t, fSeries, gSeries, hSeries);
 
         trajectorySeries.getData().add(new XYChart.Data<>(x, v));
-        if(fSeries.getData().size() > MAX_SCATTERCHART_DATA) trajectorySeries.getData().remove(0);
+        if(fSeries.getData().size() > MAX_SCATTER_CHART_DATA) trajectorySeries.getData().remove(0);
 
         tValue.setText(String.format(FLOAT_FORMAT, t));
         xValue.setText(String.format(FLOAT_FORMAT, x));
@@ -177,6 +169,15 @@ public class Controller {
         gValue.setText(String.format(FLOAT_FORMAT, g));
         hValue.setText(String.format(FLOAT_FORMAT, h));
         wValue.setText(String.format(FLOAT_FORMAT, w));
+    }
+
+    private void updateLineChart(double a, double b, double c, double t, XYChart.Series<Number, Number> aSeries, XYChart.Series<Number, Number> bSeries, XYChart.Series<Number, Number> cSeries) {
+        aSeries.getData().add(new XYChart.Data<>(t, a));
+        if(aSeries.getData().size() > MAX_LINE_CHART_DATA) aSeries.getData().remove(0);
+        bSeries.getData().add(new XYChart.Data<>(t, b));
+        if(bSeries.getData().size() > MAX_LINE_CHART_DATA) bSeries.getData().remove(0);
+        cSeries.getData().add(new XYChart.Data<>(t, c));
+        if(cSeries.getData().size() > MAX_LINE_CHART_DATA) cSeries.getData().remove(0);
     }
 
     private double parseTextField(TextInputControl input, Function<Double, Boolean> validation) throws IllegalArgumentException {
