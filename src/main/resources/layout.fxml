@@ -18,7 +18,7 @@
 
 <GridPane gridLinesVisible="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="727.0" prefWidth="1134.0" stylesheets="stylesheet.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.edu.pw.mini.symulacje.Controller">
   <columnConstraints>
-    <ColumnConstraints hgrow="SOMETIMES" maxWidth="180.0" minWidth="10.0" prefWidth="120.0" />
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="200.0" minWidth="10.0" prefWidth="120.0" />
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="40.0" prefWidth="100.0" />
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
   </columnConstraints>
@@ -100,20 +100,21 @@
             <Label text="c" GridPane.halignment="RIGHT" GridPane.rowIndex="17" />
             <Label text="h(t)" GridPane.halignment="RIGHT" GridPane.rowIndex="18" />
             <Label text="w(t)" GridPane.halignment="RIGHT" GridPane.rowIndex="19" />
-            <TextField text="0" GridPane.columnIndex="1" GridPane.rowIndex="12" fx:id="x0Value" />
+            <TextField text="6" GridPane.columnIndex="1" GridPane.rowIndex="12" fx:id="x0Value" />
             <TextField fx:id="v0Value" text="0" GridPane.columnIndex="1" GridPane.rowIndex="13" />
-            <TextField fx:id="dtValue" text="0" GridPane.columnIndex="1" GridPane.rowIndex="14" />
-            <TextField fx:id="mValue" text="0" GridPane.columnIndex="1" GridPane.rowIndex="15" />
-            <TextField fx:id="kValue" text="0" GridPane.columnIndex="1" GridPane.rowIndex="16" />
-            <TextField fx:id="cValue" text="0" GridPane.columnIndex="1" GridPane.rowIndex="17" />
-            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="25.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="21">
+            <TextField fx:id="dtValue" text="0.01" GridPane.columnIndex="1" GridPane.rowIndex="14" />
+            <TextField fx:id="mValue" text="1" GridPane.columnIndex="1" GridPane.rowIndex="15" />
+            <TextField fx:id="kValue" text="0.1" GridPane.columnIndex="1" GridPane.rowIndex="16" />
+            <TextField fx:id="cValue" text="5" GridPane.columnIndex="1" GridPane.rowIndex="17" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="21">
                <children>
-                  <Button mnemonicParsing="false" onAction="#onStop" text="Stop" />
-                  <Button mnemonicParsing="false" onAction="#onStart" text="Start" />
+                  <Button fx:id="stopButton" mnemonicParsing="false" onAction="#onStop" text="Stop" />
+                  <Button fx:id="pauseButton" mnemonicParsing="false" onAction="#onPause" text="Pause" />
+                  <Button fx:id="startButton" mnemonicParsing="false" onAction="#onStart" text="Start" />
                </children>
             </HBox>
-            <TextArea fx:id="hFunValue" prefHeight="80.0" prefWidth="200.0" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="18" />
-            <TextArea fx:id="wFunValue" prefHeight="80.0" prefWidth="200.0" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="19" />
+            <TextArea fx:id="hFun" prefHeight="80.0" prefWidth="200.0" text="0" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="18" />
+            <TextArea fx:id="wFun" prefHeight="80.0" prefWidth="200.0" text="0" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="19" />
          </children>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

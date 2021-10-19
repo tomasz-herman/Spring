@@ -30,6 +30,7 @@ public class Simulation implements EventHandler<ActionEvent> {
     private double x;
     private double v;
     private double a;
+    private double u;
 
     public Simulation(Consumer<Double> updateVisualisation, OctaConsumer<Double> updateControls, double x0, double v0, double dt, double m, double k, double c, String w, String h) {
         this.updateVisualisation = updateVisualisation;
@@ -46,6 +47,7 @@ public class Simulation implements EventHandler<ActionEvent> {
         this.F = (x, v, t) -> this.f.apply(x, t) + this.g.apply(v) + this.h.apply(t);
 
         this.t = 0.0;
+        this.u = 0.0;
         this.x = x0;
         this.v = v0;
         this.a = F.apply(x, v, t) / m;
@@ -59,7 +61,12 @@ public class Simulation implements EventHandler<ActionEvent> {
         x += v * dt * 0.5;
         v += a * dt * 0.5;
         a = F.apply(x, v, t) / m;
-        updateVisualisation.accept(x);
-        updateControls.accept(x, v, a, t, this.w.apply(t), f.apply(x, t), g.apply(v), this.h.apply(t));
+
+        u += dt;
+        if(u > 0.01667) {
+            u -= 0.01667;
+            updateVisualisation.accept(x);
+            updateControls.accept(x, v, a, t, this.w.apply(t), f.apply(x, t), g.apply(v), this.h.apply(t));
+        }
     }
 }
