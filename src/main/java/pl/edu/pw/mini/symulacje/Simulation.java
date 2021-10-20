@@ -68,7 +68,7 @@ public class Simulation implements EventHandler<ActionEvent> {
         if(u > UPDATE_TIME) {
             u -= UPDATE_TIME;
             updateVisualisation.accept(x);
-            updateControls.accept(x, v, a, t, this.w.apply(t), f.apply(x, t), g.apply(v), this.h.apply(t));
+            updateControls.accept(x, v, a, t, w.apply(t), f.apply(x, t), g.apply(v), h.apply(t));
         }
     }
 }
