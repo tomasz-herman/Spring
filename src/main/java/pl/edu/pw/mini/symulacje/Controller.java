@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
@@ -17,13 +18,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 
+import static java.lang.Math.*;
 import static javafx.animation.Animation.Status.PAUSED;
 import static javafx.animation.Animation.Status.STOPPED;
 import static javafx.scene.control.Alert.AlertType.ERROR;
 
 public class Controller {
-    private static final int MAX_LINE_CHART_DATA = 1_000;
-    private static final int MAX_SCATTER_CHART_DATA = 1_000_000;
+    private static final int MAX_LINE_CHART_DATA = (int)(60 / Simulation.UPDATE_TIME);
+    private static final int LINE_CHART_RANGE = 60;
+    private static final int MAX_SCATTER_CHART_DATA = 100_000;
     private static final String FLOAT_FORMAT = "%.2f";
     private static final String CANNOT_START_SIMULATION = "Couldn't start simulation";
     private static final String RESUME_BTN_TEXT = "Resume";
@@ -65,6 +68,10 @@ public class Controller {
     private XYChart.Series<Number, Number> trajectorySeries;
 
     private final Timeline timeline = new Timeline();
+
+    private double trajectoryChartScale = 0.0;
+    private double kinematicsChartScale = 0.0;
+    private double forcesChartScale = 0.0;
 
     @FXML private void initialize() {
         timeline.setCycleCount(Timeline.INDEFINITE);
@@ -109,6 +116,10 @@ public class Controller {
             final double m = parseTextField(mValue, v -> v > 0);
             final double k = parseTextField(kValue, v -> v >= 0);
             final double c = parseTextField(cValue, v -> v >= 0);
+
+            trajectoryChartScale = 0.0;
+            kinematicsChartScale = 0.0;
+            forcesChartScale = 0.0;
 
             Visualisation visualisation = new Visualisation(visualisationPane);
 
@@ -158,7 +169,11 @@ public class Controller {
         updateLineChart(x, v, a, t, xSeries, xtSeries, xttSeries);
         updateLineChart(f, g, h, t, fSeries, gSeries, hSeries);
 
+        kinematicsChartScale = updateChartScale(x, v, a, t, kinematicsChartScale, kinematicsChart);
+        forcesChartScale = updateChartScale(f, g, h, t, forcesChartScale, forcesChart);
+
         trajectorySeries.getData().add(new XYChart.Data<>(x, v));
+        trajectoryChartScale = updateChartScale(x, v, trajectoryChartScale, trajectoryChart);
         if(fSeries.getData().size() > MAX_SCATTER_CHART_DATA) trajectorySeries.getData().remove(0);
 
         tValue.setText(String.format(FLOAT_FORMAT, t));
@@ -169,6 +184,28 @@ public class Controller {
         gValue.setText(String.format(FLOAT_FORMAT, g));
         hValue.setText(String.format(FLOAT_FORMAT, h));
         wValue.setText(String.format(FLOAT_FORMAT, w));
+    }
+
+    private double updateChartScale(double a, double b, double c, double t, double scale, LineChart<Number, Number> chart) {
+        scale = max(max(abs(a), abs(b)), max(abs(c), scale));
+        NumberAxis yAxis = (NumberAxis) chart.getYAxis();
+        NumberAxis xAxis = (NumberAxis) chart.getXAxis();
+        yAxis.setUpperBound(scale);
+        yAxis.setLowerBound(-scale);
+        double tStart = max(ceil((t - LINE_CHART_RANGE) / 10) * 10, 0);
+        double tEnd = tStart + LINE_CHART_RANGE;
+        xAxis.setUpperBound(tEnd);
+        xAxis.setLowerBound(tStart);
+        return scale;
+    }
+
+    private double updateChartScale(double a, double b, double scale, ScatterChart<Number, Number> chart) {
+        scale = max(scale, max(abs(a), abs(b)));
+        ((NumberAxis)chart.getXAxis()).setUpperBound(scale);
+        ((NumberAxis)chart.getXAxis()).setLowerBound(-scale);
+        ((NumberAxis)chart.getYAxis()).setUpperBound(scale);
+        ((NumberAxis)chart.getYAxis()).setLowerBound(-scale);
+        return scale;
     }
 
     private void updateLineChart(double a, double b, double c, double t, XYChart.Series<Number, Number> aSeries, XYChart.Series<Number, Number> bSeries, XYChart.Series<Number, Number> cSeries) {
