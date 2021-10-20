@@ -5,6 +5,7 @@ import javafx.event.EventHandler;
 import pl.edu.pw.mini.symulacje.functional.OctaConsumer;
 import pl.edu.pw.mini.symulacje.functional.TriFunction;
 
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -14,7 +15,7 @@ import static pl.edu.pw.mini.symulacje.functional.Utils.function;
 public class Simulation implements EventHandler<ActionEvent> {
     public static final double UPDATE_TIME = 0.01667;
 
-    private final Consumer<Double> updateVisualisation;
+    private final BiConsumer<Double, Double> updateVisualisation;
     private final OctaConsumer<Double> updateControls;
 
     private final double dt;
@@ -34,7 +35,7 @@ public class Simulation implements EventHandler<ActionEvent> {
     private double a;
     private double u;
 
-    public Simulation(Consumer<Double> updateVisualisation, OctaConsumer<Double> updateControls, double x0, double v0, double dt, double m, double k, double c, String w, String h) {
+    public Simulation(BiConsumer<Double, Double> updateVisualisation, OctaConsumer<Double> updateControls, double x0, double v0, double dt, double m, double k, double c, String w, String h) {
         this.updateVisualisation = updateVisualisation;
         this.updateControls = updateControls;
         this.dt = dt;
@@ -53,7 +54,7 @@ public class Simulation implements EventHandler<ActionEvent> {
         this.x = x0;
         this.v = v0;
         this.a = F.apply(x, v, t) / m;
-        updateVisualisation.accept(x);
+        updateVisualisation.accept(x, this.w.apply(t));
         updateControls.accept(x, v, a, t, this.w.apply(t), f.apply(x, t), g.apply(t), this.h.apply(t));
     }
 
@@ -67,7 +68,7 @@ public class Simulation implements EventHandler<ActionEvent> {
         u += dt;
         if(u > UPDATE_TIME) {
             u -= UPDATE_TIME;
-            updateVisualisation.accept(x);
+            updateVisualisation.accept(x, w.apply(t));
             updateControls.accept(x, v, a, t, w.apply(t), f.apply(x, t), g.apply(v), h.apply(t));
         }
     }
