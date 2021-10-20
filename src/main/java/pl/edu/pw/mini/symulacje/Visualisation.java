@@ -12,21 +12,18 @@ public class Visualisation {
     public static final int VISUALISATION_SCALE = 25;
     public static final int RADIUS = 25;
 
-    private final DoubleProperty center = new SimpleDoubleProperty();
     private final DoubleProperty x = new SimpleDoubleProperty();
     private final DoubleProperty w = new SimpleDoubleProperty();
-    private final Circle circle;
-    private final Line wLine;
 
     public Visualisation(Pane pane) {
-        circle = new Circle(RADIUS);
+        Circle circle = new Circle(RADIUS);
         circle.setFill(Color.CRIMSON);
         circle.setStrokeWidth(3);
         circle.setStroke(Color.BLACK);
         Line line = new Line();
         line.setFill(Color.SADDLEBROWN);
         line.setStrokeWidth(3);
-        wLine = new Line();
+        Line wLine = new Line();
         wLine.setFill(Color.RED);
         wLine.getStrokeDashArray().addAll(25d, 20d, 5d, 20d);
         wLine.endXProperty().bind(pane.widthProperty());
@@ -38,6 +35,7 @@ public class Visualisation {
         line.endXProperty().bind(pane.widthProperty().divide(2));
         circle.centerXProperty().bind(pane.widthProperty().divide(2));
         line.endYProperty().bind(circle.centerYProperty());
+        DoubleProperty center = new SimpleDoubleProperty();
         center.bind(pane.heightProperty().divide(2));
         Rectangle clip = new Rectangle(1, 1, Color.SKYBLUE);
         clip.heightProperty().bind(pane.heightProperty());
