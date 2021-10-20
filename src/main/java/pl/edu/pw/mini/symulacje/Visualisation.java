@@ -13,6 +13,8 @@ public class Visualisation {
     public static final int RADIUS = 25;
 
     private final DoubleProperty center = new SimpleDoubleProperty();
+    private final DoubleProperty x = new SimpleDoubleProperty();
+    private final DoubleProperty w = new SimpleDoubleProperty();
     private final Circle circle;
     private final Line wLine;
 
@@ -41,11 +43,14 @@ public class Visualisation {
         clip.heightProperty().bind(pane.heightProperty());
         clip.widthProperty().bind(pane.widthProperty());
         pane.setClip(clip);
+
+        circle.centerYProperty().bind(x.multiply(VISUALISATION_SCALE).add(center));
+        wLine.startYProperty().bind(w.multiply(VISUALISATION_SCALE).add(center));
+        wLine.endYProperty().bind(w.multiply(VISUALISATION_SCALE).add(center));
     }
 
     public void update(double x, double w) {
-        circle.setCenterY(center.getValue() + x * VISUALISATION_SCALE);
-        wLine.setStartY(center.getValue() + w * VISUALISATION_SCALE);
-        wLine.setEndY(center.getValue() + w * VISUALISATION_SCALE);
+        this.x.set(x);
+        this.w.set(w);
     }
 }
