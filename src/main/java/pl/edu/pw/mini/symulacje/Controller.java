@@ -11,6 +11,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 
@@ -56,6 +57,7 @@ public class Controller {
     @FXML private Button startButton;
     @FXML private Button pauseButton;
     @FXML private Button stopButton;
+    @FXML private AnchorPane trajectoryPane;
 
     private XYChart.Series<Number, Number> xSeries;
     private XYChart.Series<Number, Number> xtSeries;
@@ -105,6 +107,35 @@ public class Controller {
             if(newValue == PAUSED) pauseButton.setText(RESUME_BTN_TEXT);
             else pauseButton.setText(PAUSE_BTN_TEXT);
         });
+
+        trajectoryPane.widthProperty().addListener((observable, oldValue, newValue) -> {
+            double paneWidth = newValue.doubleValue();
+            double paneHeight = trajectoryPane.getHeight();
+            resizeTrajectoryChart(paneWidth, paneHeight);
+        });
+
+        trajectoryPane.heightProperty().addListener((observable, oldValue, newValue) -> {
+            double paneWidth = trajectoryPane.getWidth();
+            double paneHeight = newValue.doubleValue();
+            resizeTrajectoryChart(paneWidth, paneHeight);
+        });
+    }
+
+    private void resizeTrajectoryChart(double paneWidth, double paneHeight) {
+        double chartSize = Math.min(paneWidth, paneHeight);
+        if(paneWidth > paneHeight) {
+            double margin = (paneWidth - chartSize) / 2;
+            AnchorPane.setRightAnchor(trajectoryChart, margin);
+            AnchorPane.setLeftAnchor(trajectoryChart, margin);
+            AnchorPane.setBottomAnchor(trajectoryChart, 0.0);
+            AnchorPane.setTopAnchor(trajectoryChart, 0.0);
+        } else {
+            double margin = (paneHeight - chartSize) / 2;
+            AnchorPane.setBottomAnchor(trajectoryChart, margin);
+            AnchorPane.setTopAnchor(trajectoryChart, margin);
+            AnchorPane.setRightAnchor(trajectoryChart, 0.0);
+            AnchorPane.setLeftAnchor(trajectoryChart, 0.0);
+        }
     }
 
     @FXML private void onStart(ActionEvent event) {
