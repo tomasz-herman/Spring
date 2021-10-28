@@ -131,7 +131,7 @@
                 <RowConstraints minHeight="10.0" percentHeight="66.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" percentHeight="34.0" prefHeight="30.0" vgrow="SOMETIMES" />
             </rowConstraints>
-            <Pane fx:id="visualisationPane" prefHeight="200.0" prefWidth="200.0" />
+            <Pane fx:id="visualisationPane" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: SKYBLUE;" />
             <LineChart fx:id="kinematicsChart" animated="false" createSymbols="false" prefHeight="57.0" prefWidth="195.0" title="Position, velocity and acceleration" GridPane.rowIndex="1">
                 <xAxis>
                     <NumberAxis autoRanging="false" forceZeroInRange="false" label="t" side="BOTTOM" />
@@ -163,21 +163,22 @@
                     <Cursor fx:constant="CROSSHAIR" />
                 </cursor>
             </LineChart>
-         <AnchorPane fx:id="trajectoryPane" GridPane.rowIndex="1">
-            <children>
-                  <ScatterChart fx:id="trajectoryChart" animated="false" legendVisible="false" title="Trajectory" AnchorPane.bottomAnchor="79.78978228827083" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                      <xAxis>
-                          <NumberAxis autoRanging="false" forceZeroInRange="false" label="x" side="BOTTOM" />
-                      </xAxis>
-                      <yAxis>
-                          <NumberAxis autoRanging="false" forceZeroInRange="false" label="xt" side="LEFT" tickLabelRotation="270" />
-                      </yAxis>
-                      <cursor>
-                          <Cursor fx:constant="CROSSHAIR" />
-                      </cursor>
-                  </ScatterChart>
-            </children>
-         </AnchorPane>
+            <AnchorPane fx:id="trajectoryPane" GridPane.rowIndex="1">
+                <ScatterChart fx:id="trajectoryChart" animated="false" legendVisible="false" title="Trajectory"
+                              AnchorPane.bottomAnchor="79.78978228827083" AnchorPane.leftAnchor="0.0"
+                              AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <xAxis>
+                        <NumberAxis autoRanging="false" forceZeroInRange="false" label="x" side="BOTTOM"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis autoRanging="false" forceZeroInRange="false" label="xt" side="LEFT"
+                                    tickLabelRotation="270"/>
+                    </yAxis>
+                    <cursor>
+                        <Cursor fx:constant="CROSSHAIR"/>
+                    </cursor>
+                </ScatterChart>
+            </AnchorPane>
         </GridPane>
     </GridPane>
 </GridPane>
