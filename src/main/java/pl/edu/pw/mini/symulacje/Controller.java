@@ -15,6 +15,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
@@ -27,7 +28,7 @@ import static javafx.scene.control.Alert.AlertType.ERROR;
 public class Controller {
     private static final int MAX_LINE_CHART_DATA = (int)(60 / Simulation.UPDATE_TIME);
     private static final int LINE_CHART_RANGE = 60;
-    private static final int MAX_SCATTER_CHART_DATA = 100_000;
+    private static final int MAX_SCATTER_CHART_DATA = 2_500;
     private static final String FLOAT_FORMAT = "%.2f";
     private static final String CANNOT_START_SIMULATION = "Couldn't start simulation";
     private static final String RESUME_BTN_TEXT = "Resume";
@@ -88,7 +89,7 @@ public class Controller {
         hSeries = new XYChart.Series<>("h", FXCollections.observableList(new LinkedList<>()));
         forcesChart.getData().addAll(List.of(fSeries, gSeries, hSeries));
 
-        trajectorySeries = new XYChart.Series<>();
+        trajectorySeries = new XYChart.Series<>(FXCollections.observableList(new LinkedList<>()));
         trajectoryChart.getData().add(trajectorySeries);
 
         startButton.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
@@ -205,7 +206,16 @@ public class Controller {
 
         trajectorySeries.getData().add(new XYChart.Data<>(x, v));
         trajectoryChartScale = updateChartScale(x, v, trajectoryChartScale, trajectoryChart);
-        if(fSeries.getData().size() > MAX_SCATTER_CHART_DATA) trajectorySeries.getData().remove(0);
+        if(trajectorySeries.getData().size() > MAX_SCATTER_CHART_DATA) {
+            int index = 1;
+            var iterator = trajectorySeries.getData().iterator();
+            while(iterator.hasNext()) {
+                iterator.next();
+                if(index++ % 2 == 0) {
+                    iterator.remove();
+                }
+            }
+        }
 
         tValue.setText(String.format(FLOAT_FORMAT, t));
         xValue.setText(String.format(FLOAT_FORMAT, x));
