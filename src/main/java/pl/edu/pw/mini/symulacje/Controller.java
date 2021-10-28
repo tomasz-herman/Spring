@@ -197,7 +197,28 @@ public class Controller {
         visualisationPane.getChildren().clear();
     }
 
+    double temp = 0;
+    double temp2 = 0;
+
+    double x2 = 0;
+    double x1 = 0;
     private void update(double x, double v, double a, double t, double w, double f, double g, double h) {
+        if((x1 - x) / (x2 - x1) < 0) {
+            System.out.printf("%.2f %.2f%n", t, x);
+            if(x1 > 0) {
+                double m = (temp + t) / 2;
+                double T = t - temp2;
+                double phi = m % T;
+                if(phi < 0) phi += T;
+                System.out.printf("<------- %.2f %.2f %.2f%n", x1, phi, T);
+                temp2 = t;
+            } else {
+                temp = t;
+            }
+        }
+        x2 = x1;
+        x1 = x;
+
         updateLineChart(x, v, a, t, xSeries, xtSeries, xttSeries);
         updateLineChart(f, g, h, t, fSeries, gSeries, hSeries);
 
