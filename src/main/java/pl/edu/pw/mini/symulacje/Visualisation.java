@@ -9,14 +9,14 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 
 public class Visualisation {
-    public static final int VISUALISATION_SCALE = 25;
-    public static final int RADIUS = 25;
+    public final DoubleProperty VISUALISATION_SCALE = new SimpleDoubleProperty(25);
 
     private final DoubleProperty x = new SimpleDoubleProperty();
     private final DoubleProperty w = new SimpleDoubleProperty();
 
     public Visualisation(Pane pane) {
-        Circle circle = new Circle(RADIUS);
+        Circle circle = new Circle();
+        circle.radiusProperty().bind(VISUALISATION_SCALE);
         circle.setFill(Color.CRIMSON);
         circle.setStrokeWidth(3);
         circle.setStroke(Color.BLACK);
@@ -41,6 +41,12 @@ public class Visualisation {
         clip.heightProperty().bind(pane.heightProperty());
         clip.widthProperty().bind(pane.widthProperty());
         pane.setClip(clip);
+        pane.setOnScroll(event -> {
+            double scale = VISUALISATION_SCALE.get();
+            double scroll = event.getDeltaY() / event.getMultiplierY();
+            double multiplier = 1 + scroll / 10;
+            VISUALISATION_SCALE.set(scale * multiplier);
+        });
 
         circle.centerYProperty().bind(x.multiply(VISUALISATION_SCALE).add(center));
         wLine.startYProperty().bind(w.multiply(VISUALISATION_SCALE).add(center));
