@@ -16,7 +16,6 @@ import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.function.Function;
 
 import static java.lang.Math.*;
@@ -25,7 +24,9 @@ import static javafx.animation.Animation.Status.STOPPED;
 import static javafx.scene.control.Alert.AlertType.ERROR;
 
 public class Controller {
-    private static final int MAX_LINE_CHART_DATA = (int)(60 / Simulation.UPDATE_TIME);
+    public static final double DT = 1.0 / 60.0;
+
+    private static final int MAX_LINE_CHART_DATA = (int)(60 / DT);
     private static final int LINE_CHART_RANGE = 60;
     private static final int MAX_SCATTER_CHART_DATA = 2_500;
     private static final String FLOAT_FORMAT = "%.2f";
@@ -34,25 +35,19 @@ public class Controller {
     private static final String PAUSE_BTN_TEXT = "Pause";
 
     @FXML private ScatterChart<Number, Number> trajectoryChart;
-    @FXML private LineChart<Number, Number> kinematicsChart;
-    @FXML private LineChart<Number, Number> forcesChart;
+    @FXML private LineChart<Number, Number> positionChart;
+    @FXML private LineChart<Number, Number> velocityChart;
+    @FXML private LineChart<Number, Number> accelerationChart;
 
-    @FXML private Label fValue;
-    @FXML private Label gValue;
-    @FXML private Label hValue;
+
     @FXML private Label tValue;
-    @FXML private Label wValue;
     @FXML private Label xValue;
     @FXML private Label xtValue;
     @FXML private Label xttValue;
-    @FXML private TextField x0Value;
-    @FXML private TextField v0Value;
-    @FXML private TextField cValue;
-    @FXML private TextField dtValue;
-    @FXML private TextField kValue;
-    @FXML private TextField mValue;
-    @FXML private TextArea wFun;
-    @FXML private TextArea hFun;
+    @FXML private TextField wValue;
+    @FXML private TextField RValue;
+    @FXML private TextField LValue;
+    @FXML private TextField eValue;
     @FXML private Pane visualisationPane;
     @FXML private Button startButton;
     @FXML private Button pauseButton;
@@ -63,17 +58,14 @@ public class Controller {
     private XYChart.Series<Number, Number> xtSeries;
     private XYChart.Series<Number, Number> xttSeries;
 
-    private XYChart.Series<Number, Number> fSeries;
-    private XYChart.Series<Number, Number> gSeries;
-    private XYChart.Series<Number, Number> hSeries;
-
     private XYChart.Series<Number, Number> trajectorySeries;
 
     private final Timeline timeline = new Timeline();
 
     private double trajectoryChartScale = 0.0;
-    private double kinematicsChartScale = 0.0;
-    private double forcesChartScale = 0.0;
+    private double positionChartScale = 0.0;
+    private double velocityChartScale = 0.0;
+    private double accelerationChartScale = 0.0;
 
     @FXML private void initialize() {
         timeline.setCycleCount(Timeline.INDEFINITE);
@@ -81,25 +73,18 @@ public class Controller {
         xSeries = new XYChart.Series<>("x", FXCollections.observableList(new LinkedList<>()));
         xtSeries = new XYChart.Series<>("xt", FXCollections.observableList(new LinkedList<>()));
         xttSeries = new XYChart.Series<>("xtt", FXCollections.observableList(new LinkedList<>()));
-        kinematicsChart.getData().addAll(List.of(xSeries, xtSeries, xttSeries));
-
-        fSeries = new XYChart.Series<>("f", FXCollections.observableList(new LinkedList<>()));
-        gSeries = new XYChart.Series<>("g", FXCollections.observableList(new LinkedList<>()));
-        hSeries = new XYChart.Series<>("h", FXCollections.observableList(new LinkedList<>()));
-        forcesChart.getData().addAll(List.of(fSeries, gSeries, hSeries));
+        positionChart.getData().add(xSeries);
+        velocityChart.getData().add(xtSeries);
+        accelerationChart.getData().add(xttSeries);
 
         trajectorySeries = new XYChart.Series<>(FXCollections.observableList(new LinkedList<>()));
         trajectoryChart.getData().add(trajectorySeries);
 
         startButton.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
-        x0Value.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
-        v0Value.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
-        cValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
-        dtValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
-        kValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
-        mValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
-        wFun.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
-        hFun.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        wValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        RValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        LValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
+        eValue.disableProperty().bind(timeline.statusProperty().isNotEqualTo(STOPPED));
         stopButton.disableProperty().bind(timeline.statusProperty().isEqualTo(STOPPED));
         pauseButton.disableProperty().bind(timeline.statusProperty().isEqualTo(STOPPED));
 
@@ -141,26 +126,23 @@ public class Controller {
     @FXML private void onStart(ActionEvent event) {
         event.consume();
         try {
-            final double x0 = parseTextField(x0Value, null);
-            final double v0 = parseTextField(v0Value, null);
-            final double dt = parseTextField(dtValue, v -> v > 0);
-            final double m = parseTextField(mValue, v -> v > 0);
-            final double k = parseTextField(kValue, v -> v >= 0);
-            final double c = parseTextField(cValue, v -> v >= 0);
+            final double w = parseTextField(wValue, v -> v > 0);
+            final double R = parseTextField(RValue, v -> v > 0);
+            final double L = parseTextField(LValue, v -> v > 0);
+            final double e = parseTextField(eValue, v -> v >= 0);
+            Simulation.Parameters params = new Simulation.Parameters(R, L, w, e);
 
             trajectoryChartScale = 0.0;
-            kinematicsChartScale = 0.0;
-            forcesChartScale = 0.0;
+            positionChartScale = 0.0;
+            velocityChartScale = 0.0;
+            accelerationChartScale = 0.0;
 
             Visualisation visualisation = new Visualisation(visualisationPane);
 
-            Simulation springSimulation = new Simulation(
-                    visualisation::update, this::update,
-                    x0, v0, dt, m, k, c,
-                    wFun.getText(), hFun.getText());
+            Simulation springSimulation = new Simulation(visualisation::update, this::update, params);
 
             timeline.getKeyFrames().clear();
-            timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(dt), springSimulation));
+            timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(DT), springSimulation));
             timeline.play();
         } catch (IllegalArgumentException e) {
             Alert errorAlert = new Alert(ERROR);
@@ -185,26 +167,25 @@ public class Controller {
         xSeries.getData().clear();
         xtSeries.getData().clear();
         xttSeries.getData().clear();
-        kinematicsChart.getData().clear();
-        kinematicsChart.getData().addAll(List.of(xSeries, xtSeries, xttSeries));
-        fSeries.getData().clear();
-        gSeries.getData().clear();
-        hSeries.getData().clear();
-        forcesChart.getData().clear();
-        forcesChart.getData().addAll(List.of(fSeries, gSeries, hSeries));
+        positionChart.getData().clear();
+        positionChart.getData().add(xSeries);
+        velocityChart.getData().clear();
+        velocityChart.getData().add(xtSeries);
+        accelerationChart.getData().clear();
+        accelerationChart.getData().add(xttSeries);
         trajectorySeries.getData().clear();
         visualisationPane.getChildren().clear();
     }
 
-    private void update(double x, double v, double a, double t, double w, double f, double g, double h) {
-        updateLineChart(x, v, a, t, xSeries, xtSeries, xttSeries);
-        updateLineChart(f, g, h, t, fSeries, gSeries, hSeries);
+    private void update(Simulation.State state) {
+        updateLineChart(state.x(), state.xt(), state.xtt(), state.t(), xSeries, xtSeries, xttSeries);
 
-        kinematicsChartScale = updateChartScale(x, v, a, t, kinematicsChartScale, kinematicsChart);
-        forcesChartScale = updateChartScale(f, g, h, t, forcesChartScale, forcesChart);
+        positionChartScale = updateChartScale(state.x(), state.xt(), state.xtt(), state.t(), positionChartScale, positionChart);
+        velocityChartScale = updateChartScale(state.x(), state.xt(), state.xtt(), state.t(), velocityChartScale, velocityChart);
+        accelerationChartScale = updateChartScale(state.x(), state.xt(), state.xtt(), state.t(), accelerationChartScale, accelerationChart);
 
-        trajectorySeries.getData().add(new XYChart.Data<>(x, v));
-        trajectoryChartScale = updateChartScale(x, v, trajectoryChartScale, trajectoryChart);
+        trajectorySeries.getData().add(new XYChart.Data<>(state.x(), state.xt()));
+        trajectoryChartScale = updateChartScale(state.x(), state.xt(), trajectoryChartScale, trajectoryChart);
         if(trajectorySeries.getData().size() > MAX_SCATTER_CHART_DATA) {
             int index = 1;
             var iterator = trajectorySeries.getData().iterator();
@@ -216,14 +197,10 @@ public class Controller {
             }
         }
 
-        tValue.setText(String.format(FLOAT_FORMAT, t));
-        xValue.setText(String.format(FLOAT_FORMAT, x));
-        xtValue.setText(String.format(FLOAT_FORMAT, v));
-        xttValue.setText(String.format(FLOAT_FORMAT, a));
-        fValue.setText(String.format(FLOAT_FORMAT, f));
-        gValue.setText(String.format(FLOAT_FORMAT, g));
-        hValue.setText(String.format(FLOAT_FORMAT, h));
-        wValue.setText(String.format(FLOAT_FORMAT, w));
+        tValue.setText(String.format(FLOAT_FORMAT, state.t()));
+        xValue.setText(String.format(FLOAT_FORMAT, state.x()));
+        xtValue.setText(String.format(FLOAT_FORMAT, state.xt()));
+        xttValue.setText(String.format(FLOAT_FORMAT, state.xtt()));
     }
 
     private double updateChartScale(double a, double b, double c, double t, double scale, LineChart<Number, Number> chart) {

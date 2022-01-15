@@ -2,74 +2,65 @@ package pl.edu.pw.mini.symulacje;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import pl.edu.pw.mini.symulacje.functional.OctaConsumer;
-import pl.edu.pw.mini.symulacje.functional.TriFunction;
 
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import java.util.Random;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-import static pl.edu.pw.mini.symulacje.functional.Utils.function;
+import static java.lang.Math.*;
 
 public class Simulation implements EventHandler<ActionEvent> {
-    public static final double UPDATE_TIME = 0.01667;
+    private final Random rand = new Random();
+    private final Consumer<Visualisation.State> updateVisualisation;
+    private final Consumer<State> updateControls;
 
-    private final BiConsumer<Double, Double> updateVisualisation;
-    private final OctaConsumer<Double> updateControls;
+    private Parameters params;
 
-    private final double dt;
-    private final double m;
-    private final double k;
-    private final double c;
-    private final Function<Double, Double> w;
+    private State state;
 
-    private final BiFunction<Double, Double, Double> f;
-    private final Function<Double, Double> g;
-    private final Function<Double, Double> h;
-    private final TriFunction<Double, Double, Double, Double> F;
+    public Simulation(Consumer<Visualisation.State> updateVisualisation, Consumer<State> updateControls, Parameters params) {
+        this.params = params;
+        state = new State(0, 0, calculatePosition(0, params.R, params.L), 0, 0);
+        for (int i = 0; i < 2; i++) handle(null);
 
-    private double t;
-    private double x;
-    private double v;
-    private double a;
-    private double u;
-
-    public Simulation(BiConsumer<Double, Double> updateVisualisation, OctaConsumer<Double> updateControls, double x0, double v0, double dt, double m, double k, double c, String w, String h) {
         this.updateVisualisation = updateVisualisation;
         this.updateControls = updateControls;
-        this.dt = dt;
-        this.m = m;
-        this.k = k;
-        this.c = c;
-        this.w = function(w, "t");
 
-        this.f = (x, t) -> this.c * (this.w.apply(t) - x);
-        this.g = v -> -this.k * v;
-        this.h = function(h, "t");
-        this.F = (x, v, t) -> this.f.apply(x, t) + this.g.apply(v) + this.h.apply(t);
+        updateVisualisation.accept(new Visualisation.State(0, params.R, params.L));
+        updateControls.accept(state);
+    }
 
-        this.t = 0.0;
-        this.u = 0.0;
-        this.x = x0;
-        this.v = v0;
-        this.a = F.apply(x, v, t) / m;
-        updateVisualisation.accept(x, this.w.apply(t));
-        updateControls.accept(x, v, a, t, this.w.apply(t), f.apply(x, t), g.apply(t), this.h.apply(t));
+    public Parameters getParams() {
+        return params;
+    }
+
+    public void setParams(Parameters params) {
+        this.params = params;
+    }
+
+    private static double calculatePosition(double a, double R, double L) {
+        final double cos = cos(a);
+        final double sin = sin(a);
+        return R * cos + sqrt(L * L - R * R * sin * sin);
     }
 
     @Override
     public void handle(ActionEvent event) {
-        a = F.apply(x, v, t) / m;
-        v += a * dt;
-        x += v * dt;
-        t += dt;
+        final double dt = Controller.DT;
+        final double e = params.e * rand.nextGaussian();
+        final double L = params.L + e;
+        final double R = params.R;
+        final double a = state.a + params.w * dt;
+        final double t = state.t + dt;
+        final double x = calculatePosition(a, R, L);
+        final double xt = (x - state.x) / dt;
+        final double xtt = (xt - state.xt) / dt;
 
-        u += dt;
-        if(u > UPDATE_TIME) {
-            u -= UPDATE_TIME;
-            updateVisualisation.accept(x, w.apply(t));
-            updateControls.accept(x, v, a, t, w.apply(t), f.apply(x, t), g.apply(v), h.apply(t));
-        }
+        state = new State(t, a, x, xt, xtt);
+
+        if(updateVisualisation != null) updateVisualisation.accept(new Visualisation.State(a, R, L));
+        if(updateControls != null) updateControls.accept(state);
     }
+
+    public record State (double t, double a, double x, double xt, double xtt) {}
+    public record Parameters (double R, double L, double w, double e) {}
 }
