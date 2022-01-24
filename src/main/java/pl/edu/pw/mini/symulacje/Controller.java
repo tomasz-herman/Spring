@@ -11,9 +11,12 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
+import org.gillius.jfxutils.chart.ChartPanManager;
+import org.gillius.jfxutils.chart.JFXChartUtil;
 
 import java.util.LinkedList;
 import java.util.function.Function;
@@ -62,11 +65,6 @@ public class Controller {
     private final Timeline timeline = new Timeline();
     private Simulation simulation;
 
-    private ChartRange trajectoryRange = new ChartRange();
-    private ChartRange positionRange = new ChartRange();
-    private ChartRange velocityRange = new ChartRange();
-    private ChartRange accelerationRange = new ChartRange();
-
     @FXML private void initialize() {
         timeline.setCycleCount(Timeline.INDEFINITE);
 
@@ -79,6 +77,11 @@ public class Controller {
 
         trajectorySeries = new XYChart.Series<>(FXCollections.observableList(new LinkedList<>()));
         trajectoryChart.getData().add(trajectorySeries);
+
+        setupChartNavigation(positionChart);
+        setupChartNavigation(velocityChart);
+        setupChartNavigation(accelerationChart);
+        setupChartNavigation(trajectoryChart);
 
         wValue.setOnAction(this::onChangeParams);
         LValue.setOnAction(this::onChangeParams);
@@ -93,46 +96,24 @@ public class Controller {
             if(newValue == PAUSED) pauseButton.setText(RESUME_BTN_TEXT);
             else pauseButton.setText(PAUSE_BTN_TEXT);
         });
-
-        trajectoryPane.widthProperty().addListener((observable, oldValue, newValue) -> {
-            double paneWidth = newValue.doubleValue();
-            double paneHeight = trajectoryPane.getHeight();
-            resizeTrajectoryChart(paneWidth, paneHeight);
-        });
-
-        trajectoryPane.heightProperty().addListener((observable, oldValue, newValue) -> {
-            double paneWidth = trajectoryPane.getWidth();
-            double paneHeight = newValue.doubleValue();
-            resizeTrajectoryChart(paneWidth, paneHeight);
-        });
     }
 
-    private void resizeTrajectoryChart(double paneWidth, double paneHeight) {
-        double chartSize = Math.min(paneWidth, paneHeight);
-        if(paneWidth > paneHeight) {
-            double margin = (paneWidth - chartSize) / 2;
-            AnchorPane.setRightAnchor(trajectoryChart, margin);
-            AnchorPane.setLeftAnchor(trajectoryChart, margin);
-            AnchorPane.setBottomAnchor(trajectoryChart, 0.0);
-            AnchorPane.setTopAnchor(trajectoryChart, 0.0);
-        } else {
-            double margin = (paneHeight - chartSize) / 2;
-            AnchorPane.setBottomAnchor(trajectoryChart, margin);
-            AnchorPane.setTopAnchor(trajectoryChart, margin);
-            AnchorPane.setRightAnchor(trajectoryChart, 0.0);
-            AnchorPane.setLeftAnchor(trajectoryChart, 0.0);
-        }
+    private static void setupChartNavigation(XYChart<?, ?> chart) {
+        JFXChartUtil.setupZooming(chart, event -> {
+            if(event.getButton() != MouseButton.PRIMARY) event.consume();
+        });
+        ChartPanManager panner = new ChartPanManager(chart);
+        panner.setMouseFilter(event -> {
+            if (event.getButton() != MouseButton.SECONDARY) event.consume();
+        });
+        panner.start();
+        JFXChartUtil.addDoublePrimaryClickAutoRangeHandler(chart);
     }
 
     @FXML private void onStart(ActionEvent event) {
         event.consume();
         try {
             Simulation.Parameters params = parseParams();
-
-            trajectoryRange = new ChartRange();
-            positionRange = new ChartRange();
-            velocityRange = new ChartRange();
-            accelerationRange = new ChartRange();
 
             Visualisation visualisation = new Visualisation(visualisationPane);
 
@@ -192,12 +173,7 @@ public class Controller {
     private void update(Simulation.State state) {
         updateLineChart(state.x(), state.xt(), state.xtt(), state.t(), xSeries, xtSeries, xttSeries);
 
-        updateTimeChartRange(state.x(), state.t(), positionRange, positionChart);
-        updateTimeChartRange(state.xt(), state.t(), velocityRange, velocityChart);
-        updateTimeChartRange(state.xtt(), state.t(), accelerationRange, accelerationChart);
-
         trajectorySeries.getData().add(new XYChart.Data<>(state.x(), state.xt()));
-        updateChartScale(state.x(), state.xt(), trajectoryRange, trajectoryChart);
         if(trajectorySeries.getData().size() > MAX_SCATTER_CHART_DATA) {
             int index = 1;
             var iterator = trajectorySeries.getData().iterator();
@@ -213,43 +189,6 @@ public class Controller {
         xValue.setText(String.format(FLOAT_FORMAT, state.x()));
         xtValue.setText(String.format(FLOAT_FORMAT, state.xt()));
         xttValue.setText(String.format(FLOAT_FORMAT, state.xtt()));
-    }
-
-    private void updateTimeChartRange(double val, double t, ChartRange range, LineChart<Number, Number> chart) {
-        range.maxY = max(val, range.maxY);
-        range.minY = min(val, range.minY);
-        range.minX = max(ceil((t - LINE_CHART_RANGE) / 10) * 10, 0);
-        range.maxX = range.minX + LINE_CHART_RANGE;
-        if(range.autosize) {
-            NumberAxis yAxis = (NumberAxis) chart.getYAxis();
-            NumberAxis xAxis = (NumberAxis) chart.getXAxis();
-            yAxis.setUpperBound(range.maxY);
-            yAxis.setLowerBound(range.minY);
-            xAxis.setUpperBound(range.maxX);
-            xAxis.setLowerBound(range.minX);
-        }
-    }
-
-    private void updateChartScale(double a, double b, ChartRange range, ScatterChart<Number, Number> chart) {
-        range.maxX = max(a, range.maxX);
-        range.minX = min(a, range.minX);
-        range.maxY = max(b, range.maxY);
-        range.minY = min(b, range.minY);
-        if(range.autosize) {
-            double diff = range.maxX - range.minX - range.maxY + range.minY;
-            double maxX = range.maxX, minX = range.minX, maxY = range.maxY, minY = range.minY;
-            if(diff > 1e-6) {
-                maxY = range.maxY + diff * 0.5;
-                minY = range.minY - diff * 0.5;
-            } else if(diff < -1e-6) {
-                maxX = range.maxX - diff * 0.5;
-                minX = range.minX + diff * 0.5;
-            }
-            ((NumberAxis)chart.getXAxis()).setUpperBound(maxX);
-            ((NumberAxis)chart.getXAxis()).setLowerBound(minX);
-            ((NumberAxis)chart.getYAxis()).setUpperBound(maxY);
-            ((NumberAxis)chart.getYAxis()).setLowerBound(minY);
-        }
     }
 
     private void updateLineChart(double a, double b, double c, double t, XYChart.Series<Number, Number> aSeries, XYChart.Series<Number, Number> bSeries, XYChart.Series<Number, Number> cSeries) {
@@ -273,13 +212,5 @@ public class Controller {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(e);
         }
-    }
-
-    private static class ChartRange {
-        public boolean autosize = true;
-        public double minX = Double.POSITIVE_INFINITY;
-        public double maxX = Double.NEGATIVE_INFINITY;
-        public double minY = Double.POSITIVE_INFINITY;
-        public double maxY = Double.NEGATIVE_INFINITY;
     }
 }

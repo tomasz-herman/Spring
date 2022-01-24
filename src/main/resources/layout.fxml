@@ -102,12 +102,12 @@
                 <RowConstraints minHeight="10.0" percentHeight="33.0" prefHeight="30.0" vgrow="SOMETIMES" />
             </rowConstraints>
             <Pane fx:id="visualisationPane" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: SKYBLUE;" />
-            <LineChart fx:id="velocityChart" animated="false" legendVisible="false" createSymbols="false" prefHeight="57.0" prefWidth="195.0" title="Velocity" GridPane.rowIndex="2">
+            <LineChart fx:id="velocityChart" animated="false" createSymbols="false" legendVisible="false" prefHeight="57.0" prefWidth="195.0" title="Velocity" GridPane.rowIndex="2">
                 <xAxis>
-                    <NumberAxis autoRanging="false" forceZeroInRange="false" label="t" side="BOTTOM" />
+                    <NumberAxis forceZeroInRange="false" label="t" side="BOTTOM" />
                 </xAxis>
                 <yAxis>
-                    <NumberAxis autoRanging="false" forceZeroInRange="false" side="LEFT" tickLabelRotation="270" />
+                    <NumberAxis forceZeroInRange="false" side="LEFT" tickLabelRotation="270" />
                 </yAxis>
                 <cursor>
                     <Cursor fx:constant="CROSSHAIR" />
@@ -115,10 +115,10 @@
             </LineChart>
          <LineChart fx:id="positionChart" animated="false" createSymbols="false" legendVisible="false" prefHeight="57.0" prefWidth="195.0" title="Position" GridPane.rowIndex="1">
             <xAxis>
-               <NumberAxis autoRanging="false" forceZeroInRange="false" label="t" side="BOTTOM" />
+               <NumberAxis forceZeroInRange="false" label="t" side="BOTTOM" />
             </xAxis>
             <yAxis>
-               <NumberAxis autoRanging="false" forceZeroInRange="false" side="LEFT" tickLabelRotation="270" />
+               <NumberAxis forceZeroInRange="false" side="LEFT" tickLabelRotation="270" />
             </yAxis>
             <cursor>
                <Cursor fx:constant="CROSSHAIR" />
@@ -133,24 +133,24 @@
                 <RowConstraints minHeight="10.0" percentHeight="34.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" percentHeight="66.0" prefHeight="30.0" vgrow="SOMETIMES" />
             </rowConstraints>
-            <LineChart fx:id="accelerationChart" animated="false" legendVisible="false" createSymbols="false" title="Acceleration">
+            <LineChart fx:id="accelerationChart" animated="false" createSymbols="false" legendVisible="false" title="Acceleration">
                 <xAxis>
-                    <NumberAxis autoRanging="false" forceZeroInRange="false" label="t" side="BOTTOM" />
+                    <NumberAxis forceZeroInRange="false" label="t" side="BOTTOM" />
                 </xAxis>
                 <yAxis>
-                    <NumberAxis autoRanging="false" forceZeroInRange="false" side="LEFT" tickLabelRotation="270" />
+                    <NumberAxis forceZeroInRange="false" side="LEFT" tickLabelRotation="270" />
                 </yAxis>
                 <cursor>
                     <Cursor fx:constant="CROSSHAIR" />
                 </cursor>
             </LineChart>
             <AnchorPane fx:id="trajectoryPane" GridPane.rowIndex="1">
-                <ScatterChart fx:id="trajectoryChart" animated="false" legendVisible="false" title="Trajectory" AnchorPane.bottomAnchor="79.78978228827083" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <ScatterChart fx:id="trajectoryChart" animated="false" legendVisible="false" title="Trajectory" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <xAxis>
-                        <NumberAxis autoRanging="false" forceZeroInRange="false" label="x" side="BOTTOM" />
+                        <NumberAxis forceZeroInRange="false" label="x" side="BOTTOM" />
                     </xAxis>
                     <yAxis>
-                        <NumberAxis autoRanging="false" forceZeroInRange="false" label="xt" side="LEFT" tickLabelRotation="270" />
+                        <NumberAxis forceZeroInRange="false" label="xt" side="LEFT" tickLabelRotation="270" />
                     </yAxis>
                     <cursor>
                         <Cursor fx:constant="CROSSHAIR" />
