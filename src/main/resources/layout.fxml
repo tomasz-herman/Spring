@@ -102,7 +102,7 @@
                 <RowConstraints minHeight="10.0" percentHeight="33.0" prefHeight="30.0" vgrow="SOMETIMES" />
             </rowConstraints>
             <Pane fx:id="visualisationPane" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: SKYBLUE;" />
-            <LineChart fx:id="velocityChart" animated="false" createSymbols="false" prefHeight="57.0" prefWidth="195.0" title="Velocity" GridPane.rowIndex="2">
+            <LineChart fx:id="velocityChart" animated="false" legendVisible="false" createSymbols="false" prefHeight="57.0" prefWidth="195.0" title="Velocity" GridPane.rowIndex="2">
                 <xAxis>
                     <NumberAxis autoRanging="false" forceZeroInRange="false" label="t" side="BOTTOM" />
                 </xAxis>
@@ -113,7 +113,7 @@
                     <Cursor fx:constant="CROSSHAIR" />
                 </cursor>
             </LineChart>
-         <LineChart fx:id="positionChart" animated="false" createSymbols="false" prefHeight="57.0" prefWidth="195.0" title="Position" GridPane.rowIndex="1">
+         <LineChart fx:id="positionChart" animated="false" createSymbols="false" legendVisible="false" prefHeight="57.0" prefWidth="195.0" title="Position" GridPane.rowIndex="1">
             <xAxis>
                <NumberAxis autoRanging="false" forceZeroInRange="false" label="t" side="BOTTOM" />
             </xAxis>
@@ -133,7 +133,7 @@
                 <RowConstraints minHeight="10.0" percentHeight="34.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" percentHeight="66.0" prefHeight="30.0" vgrow="SOMETIMES" />
             </rowConstraints>
-            <LineChart fx:id="accelerationChart" animated="false" createSymbols="false" title="Acceleration">
+            <LineChart fx:id="accelerationChart" animated="false" legendVisible="false" createSymbols="false" title="Acceleration">
                 <xAxis>
                     <NumberAxis autoRanging="false" forceZeroInRange="false" label="t" side="BOTTOM" />
                 </xAxis>
