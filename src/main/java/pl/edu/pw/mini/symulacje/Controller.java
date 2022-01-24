@@ -173,17 +173,8 @@ public class Controller {
     private void update(Simulation.State state) {
         updateLineChart(state.x(), state.xt(), state.xtt(), state.t(), xSeries, xtSeries, xttSeries);
 
-        trajectorySeries.getData().add(new XYChart.Data<>(state.x(), state.xt()));
-        if(trajectorySeries.getData().size() > MAX_SCATTER_CHART_DATA) {
-            int index = 1;
-            var iterator = trajectorySeries.getData().iterator();
-            while(iterator.hasNext()) {
-                iterator.next();
-                if(index++ % 2 == 0) {
-                    iterator.remove();
-                }
-            }
-        }
+        if(Double.isFinite(state.x()) && Double.isFinite(state.xt())) trajectorySeries.getData().add(new XYChart.Data<>(state.x(), state.xt()));
+        if(trajectorySeries.getData().size() > MAX_LINE_CHART_DATA) trajectorySeries.getData().remove(0);
 
         tValue.setText(String.format(FLOAT_FORMAT, state.t()));
         xValue.setText(String.format(FLOAT_FORMAT, state.x()));
@@ -192,11 +183,11 @@ public class Controller {
     }
 
     private void updateLineChart(double a, double b, double c, double t, XYChart.Series<Number, Number> aSeries, XYChart.Series<Number, Number> bSeries, XYChart.Series<Number, Number> cSeries) {
-        aSeries.getData().add(new XYChart.Data<>(t, a));
+        if(Double.isFinite(a)) aSeries.getData().add(new XYChart.Data<>(t, a));
         if(aSeries.getData().size() > MAX_LINE_CHART_DATA) aSeries.getData().remove(0);
-        bSeries.getData().add(new XYChart.Data<>(t, b));
+        if(Double.isFinite(b)) bSeries.getData().add(new XYChart.Data<>(t, b));
         if(bSeries.getData().size() > MAX_LINE_CHART_DATA) bSeries.getData().remove(0);
-        cSeries.getData().add(new XYChart.Data<>(t, c));
+        if(Double.isFinite(c)) cSeries.getData().add(new XYChart.Data<>(t, c));
         if(cSeries.getData().size() > MAX_LINE_CHART_DATA) cSeries.getData().remove(0);
     }
 
