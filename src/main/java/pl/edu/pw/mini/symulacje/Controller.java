@@ -7,12 +7,10 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 import org.gillius.jfxutils.chart.ChartPanManager;
@@ -21,7 +19,6 @@ import org.gillius.jfxutils.chart.JFXChartUtil;
 import java.util.LinkedList;
 import java.util.function.Function;
 
-import static java.lang.Math.*;
 import static javafx.animation.Animation.Status.PAUSED;
 import static javafx.animation.Animation.Status.STOPPED;
 import static javafx.scene.control.Alert.AlertType.ERROR;
@@ -30,10 +27,9 @@ public class Controller {
     public static final double DT = 1.0 / 60.0;
 
     private static final int MAX_LINE_CHART_DATA = (int)(60 / DT);
-    private static final int LINE_CHART_RANGE = 60;
-    private static final int MAX_SCATTER_CHART_DATA = 2_500;
     private static final String FLOAT_FORMAT = "%.2f";
     private static final String CANNOT_START_SIMULATION = "Couldn't start simulation";
+    private static final String CANNOT_CHANGE_PARAMS = "Couldn't change params";
     private static final String RESUME_BTN_TEXT = "Resume";
     private static final String PAUSE_BTN_TEXT = "Pause";
 
@@ -54,7 +50,6 @@ public class Controller {
     @FXML private Button startButton;
     @FXML private Button pauseButton;
     @FXML private Button stopButton;
-    @FXML private AnchorPane trajectoryPane;
 
     private XYChart.Series<Number, Number> xSeries;
     private XYChart.Series<Number, Number> xtSeries;
@@ -132,8 +127,15 @@ public class Controller {
 
     private void onChangeParams(ActionEvent event) {
         if (simulation != null) {
-            Simulation.Parameters params = parseParams();
-            simulation.setParams(params);
+            try {
+                Simulation.Parameters params = parseParams();
+                simulation.setParams(params);
+            } catch (IllegalArgumentException e) {
+                Alert errorAlert = new Alert(ERROR);
+                errorAlert.setHeaderText(CANNOT_CHANGE_PARAMS);
+                errorAlert.setContentText(e.getMessage());
+                errorAlert.showAndWait();
+            }
         }
     }
 
