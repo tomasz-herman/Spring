@@ -35,6 +35,7 @@ public class Simulation implements EventHandler<ActionEvent> {
 
     public void setParams(Parameters params) {
         this.params = params;
+        for (int i = 0; i < 2; i++) handle(null);
     }
 
     private static double calculatePosition(double a, double R, double L) {
@@ -57,8 +58,8 @@ public class Simulation implements EventHandler<ActionEvent> {
 
         state = new State(t, a, x, xt, xtt);
 
-        if(updateVisualisation != null) updateVisualisation.accept(new Visualisation.State(a, R, L));
-        if(updateControls != null) updateControls.accept(state);
+        if(updateVisualisation != null && event != null) updateVisualisation.accept(new Visualisation.State(a, R, L));
+        if(updateControls != null && event != null) updateControls.accept(state);
     }
 
     public record State (double t, double a, double x, double xt, double xtt) {}
